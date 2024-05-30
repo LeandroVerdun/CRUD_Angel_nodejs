@@ -2,7 +2,41 @@ const express = require('express')
 const router = express.Router()
 const Angel = require('../models/angel.model')
 
-//empezar aca el middleware mañana
+//MIDDLAWARE
+
+const getAngel = async(req,res,next) => {
+    let angel;
+    const { id } = req.params;
+
+    if(!id.match(/^[0-9a-fA-F]{24}$/)){
+        return res.status(404).json(
+            {
+                message: 'El ID del angel no es valido'
+            }
+        )
+    }
+
+    try {
+        angel = await Angel.findById(id);
+        if(!angel){
+            return res.status(404).json(
+                {
+                    message: 'El angel no fue convocado'
+                }
+            )
+        }
+    } catch(error) {
+        return res.status(500).json(
+            {
+                message: error.message
+            }
+        )
+
+    }
+
+    res.angel = angel;
+    next()//next es para seguir, despues de hacer el proceso en midware y configurar el angel continua el programa
+}
 
 
 //obtener los angeles [GET ALL]
@@ -14,7 +48,7 @@ router.get('/', async (req, res) => {
         if(angel.length == 0) {
             return res.status(204).json([])
         }
-        res(angel)
+        res.json(angel)
 
     }catch(error) {
         res.status(500).json({ message: error.message })
@@ -53,3 +87,5 @@ router.post('/', async (req, res) => {
     }
 
 })
+
+module.exports = router
